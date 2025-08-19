@@ -32,6 +32,7 @@
             padding: 20px;
             min-height: 100vh;
             background-attachment: fixed;
+            overflow-x: hidden;
         }
         
         /* Animación de fondo con partículas */
@@ -284,6 +285,39 @@
             animation: flash 0.5s ease-in-out;
         }
         
+        /* Confeti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+            animation: confetti-fall 5s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -374,7 +408,7 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.7);
+            background: var(--netflix-red);
             padding: 12px;
             border-radius: 50%;
             z-index: 50;
@@ -386,7 +420,7 @@
         
         .cart-container:hover {
             transform: scale(1.1);
-            background: rgba(0, 0, 0, 0.9);
+            background: #c40812;
         }
         
         .cart-icon {
@@ -399,7 +433,7 @@
             position: absolute;
             top: -8px;
             right: -8px;
-            background: linear-gradient(45deg, var(--netflix-red), #ff4757);
+            background: #000000;
             color: white;
             border-radius: 50%;
             width: 22px;
@@ -410,6 +444,7 @@
             font-size: 0.8rem;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
         }
         
         .cart-dropdown {
@@ -651,12 +686,20 @@
             .header {
                 padding: 15px;
             }
+            
+            .cart-dropdown {
+                width: 280px;
+                right: -10px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Fondo con partículas animadas -->
     <div class="particles" id="particles"></div>
+    
+    <!-- Contenedor de confeti -->
+    <div class="confetti-container" id="confettiContainer"></div>
     
     <div class="header">
         <h1 class="title">RANDOM STREAMINGG1</h1>
@@ -665,7 +708,7 @@
     
     <div class="rate-container">
         <div class="rate-display" id="rateDisplay" onclick="editExchangeRate()">
-            <i class="fas fa-exchange-alt"></i> Tasa: <span id="currentRate">138.12</span> Bs/$
+            <i class="fas fa-exchange-alt"></i> Tasa: <span id="currentRate">136.89</span> Bs/$
         </div>
     </div>
     
@@ -743,6 +786,7 @@
         let exchangeRate = parseFloat(document.getElementById('currentRate').textContent);
         let currentServiceId = null;
         let checkoutItems = [];
+        let cartAutoCloseTimer = null;
         
         // Servicios disponibles con información detallada
         const services = [
@@ -939,6 +983,44 @@
             }
         }
         
+        // Crear efecto de confeti
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confettiContainer');
+            confettiContainer.innerHTML = '';
+            
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff'];
+            const confettiCount = 100;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // Color aleatorio
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Tamaño aleatorio
+                const size = Math.random() * 10 + 5;
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                
+                // Posición inicial aleatoria
+                confetti.style.left = `${Math.random() * 100}%`;
+                
+                // Retraso de animación aleatorio
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                
+                // Duración de animación aleatoria
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                
+                confettiContainer.appendChild(confetti);
+            }
+            
+            // Limpiar después de la animación
+            setTimeout(() => {
+                confettiContainer.innerHTML = '';
+            }, 5000);
+        }
+        
         // Editar la tasa de cambio
         function editExchangeRate() {
             const rateDisplay = document.getElementById('rateDisplay');
@@ -970,7 +1052,7 @@
             if (newRate && !isNaN(newRate) && newRate > 0) {
                 exchangeRate = parseFloat(newRate);
                 document.getElementById('currentRate').textContent = exchangeRate.toFixed(2);
-                document.getElementById('rateDisplay').innerHTML = `Tasa: <span id="currentRate">${exchangeRate.toFixed(2)}</span> Bs/$`;
+                document.getElementById('rateDisplay').innerHTML = `<i class="fas fa-exchange-alt"></i> Tasa: <span id="currentRate">${exchangeRate.toFixed(2)}</span> Bs/$`;
                 renderServices();
             }
         }
@@ -1079,12 +1161,33 @@
                 
                 updateCartDisplay();
                 
+                // Crear efecto de confeti
+                createConfetti();
+                
+                // Mostrar carrito automáticamente
+                const dropdown = document.getElementById('cartDropdown');
+                dropdown.style.display = 'block';
+                
                 // Animación de destello en el carrito
                 const cartIcon = document.querySelector('.cart-icon');
+                const cartCount = document.getElementById('cartCount');
+                
                 cartIcon.classList.add('flash-effect');
+                cartCount.classList.add('flash-effect');
+                
                 setTimeout(() => {
                     cartIcon.classList.remove('flash-effect');
+                    cartCount.classList.remove('flash-effect');
                 }, 500);
+                
+                // Cerrar carrito después de 5 segundos
+                if (cartAutoCloseTimer) {
+                    clearTimeout(cartAutoCloseTimer);
+                }
+                
+                cartAutoCloseTimer = setTimeout(() => {
+                    dropdown.style.display = 'none';
+                }, 5000);
             }
         }
         
@@ -1106,6 +1209,11 @@
         function toggleCart() {
             const dropdown = document.getElementById('cartDropdown');
             dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            
+            // Si se muestra manualmente, cancelar el cierre automático
+            if (dropdown.style.display === 'block' && cartAutoCloseTimer) {
+                clearTimeout(cartAutoCloseTimer);
+            }
         }
         
         // Actualizar visualización del carrito
@@ -1193,8 +1301,7 @@
             });
             
             const total = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            message += `\n*Total: $${total.toFixed(2)} (Bs.${(total * exchangeRate).toFixed(2)})*\n\n`;
-            message += `*¡Gracias por tu compra!*`;
+            message += `\n*Total: $${total.toFixed(2)} (Bs.${(total * exchangeRate).toFixed(2)})*`;
             
             // Codificar el mensaje para URL
             const encodedMessage = encodeURIComponent(message);
@@ -1226,4 +1333,3 @@
     </script>
 </body>
 </html>
-
