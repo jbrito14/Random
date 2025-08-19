@@ -742,6 +742,7 @@
         // Tasa de cambio inicial (se toma del HTML)
         let exchangeRate = parseFloat(document.getElementById('currentRate').textContent);
         let currentServiceId = null;
+        let checkoutItems = [];
         
         // Servicios disponibles con información detallada
         const services = [
@@ -749,7 +750,7 @@
                 id: 1, 
                 name: "Netflix", 
                 price: 2.5, 
-                image: "1.png",
+                image: "https://via.placeholder.com/100/FF0000/FFFFFF?text=N", 
                 description: "Disfruta de series y películas ilimitadas en todos tus dispositivos.",
                 quality: "4K Ultra HD",
                 devices: "4 dispositivos simultáneos",
@@ -760,7 +761,7 @@
                 id: 2, 
                 name: "Prime Video", 
                 price: 2.2, 
-                image: "p.webp",
+                image: "https://via.placeholder.com/100/00A8E1/FFFFFF?text=PV",
                 description: "Películas y series exclusivas de Amazon Prime Video.",
                 quality: "4K Ultra HD",
                 devices: "3 dispositivos simultáneos",
@@ -771,7 +772,7 @@
                 id: 3, 
                 name: "Disney+", 
                 price: 2.3, 
-                image: "2.jpg",
+                image: "https://via.placeholder.com/100/113CCF/FFFFFF?text=D+",
                 description: "Todo el contenido de Disney, Pixar, Marvel, Star Wars y National Geographic.",
                 quality: "4K Ultra HD",
                 devices: "4 dispositivos simultáneos",
@@ -782,7 +783,7 @@
                 id: 4, 
                 name: "HBO MAX", 
                 price: 2.1, 
-                image: "3.svg",
+                image: "https://via.placeholder.com/100/3C18A1/FFFFFF?text=HBO",
                 description: "Series exclusivas de HBO, películas de Warner Bros y mucho más.",
                 quality: "4K Ultra HD",
                 devices: "3 dispositivos simultáneos",
@@ -793,7 +794,7 @@
                 id: 5, 
                 name: "Paramount+", 
                 price: 2.1, 
-                image: "8.jpg",
+                image: "https://via.placeholder.com/100/0066CC/FFFFFF?text=P+",
                 description: "Contenido exclusivo de Paramount, MTV, Nickelodeon y más.",
                 quality: "1080p Full HD",
                 devices: "3 dispositivos simultáneos",
@@ -804,7 +805,7 @@
                 id: 6, 
                 name: "Crunchyroll", 
                 price: 2.1, 
-                image: "9.jpg",
+                image: "https://via.placeholder.com/100/F47521/FFFFFF?text=CR",
                 description: "El mejor catálogo de anime directamente desde Japón.",
                 quality: "1080p Full HD",
                 devices: "2 dispositivos simultáneos",
@@ -815,7 +816,7 @@
                 id: 7, 
                 name: "Apple TV+", 
                 price: 2.7, 
-                image: "7.png",
+                image: "https://via.placeholder.com/100/000000/FFFFFF?text=ATV+",
                 description: "Originales Apple TV con producciones de alta calidad.",
                 quality: "4K Ultra HD",
                 devices: "6 dispositivos simultáneos",
@@ -826,7 +827,7 @@
                 id: 8, 
                 name: "Spotify", 
                 price: 3.3, 
-                image: "5.png",
+                image: "https://via.placeholder.com/100/1DB954/FFFFFF?text=SP",
                 description: "Música ilimitada sin anuncios y modo offline.",
                 quality: "Audio de alta calidad (320kbps)",
                 devices: "2 dispositivos simultáneos",
@@ -837,7 +838,7 @@
                 id: 9, 
                 name: "FLUJO TV", 
                 price: 2.3, 
-                image: "flujo.jpeg",
+                image: "https://via.placeholder.com/100/FF9900/FFFFFF?text=FTV",
                 description: "Servicio de TV con canales internacionales y contenido premium.",
                 quality: "1080p Full HD",
                 devices: "2 dispositivos simultáneos",
@@ -848,7 +849,7 @@
                 id: 10, 
                 name: "Vix+", 
                 price: 2.0, 
-                image: "vix.jpg",
+                image: "https://via.placeholder.com/100/FF3366/FFFFFF?text=V+",
                 description: "Contenido en español con telenovelas, series y películas.",
                 quality: "1080p Full HD",
                 devices: "2 dispositivos simultáneos",
@@ -859,7 +860,7 @@
                 id: 11, 
                 name: "Youtube Premium", 
                 price: 2.5, 
-                image: "6.jpg",
+                image: "https://via.placeholder.com/100/FF0000/FFFFFF?text=YT",
                 description: "YouTube sin anuncios y contenido exclusivo.",
                 quality: "4K Ultra HD",
                 devices: "2 dispositivos simultáneos",
@@ -870,7 +871,7 @@
                 id: 12, 
                 name: "Canva", 
                 price: 1.3, 
-                image: "canva.jpg",
+                image: "https://via.placeholder.com/100/00C4CC/FFFFFF?text=CV",
                 description: "Acceso a todas las funciones premium de diseño de Canva.",
                 quality: "Plantillas premium y recursos ilimitados",
                 devices: "1 cuenta",
@@ -881,7 +882,7 @@
                 id: 13, 
                 name: "Tele Latino", 
                 price: 3.3, 
-                image: "tlel.png",
+                image: "https://via.placeholder.com/100/3366CC/FFFFFF?text=TL",
                 description: "Canales de televisión en español de todo el mundo.",
                 quality: "1080p Full HD",
                 devices: "2 dispositivos simultáneos",
@@ -892,8 +893,8 @@
                 id: 14, 
                 name: "Plex", 
                 price: 3.0, 
-                image: "plex.png",
-                description: "Acceso to servidores Plex premium con contenido ilimitado.",
+                image: "https://via.placeholder.com/100/E5A00D/FFFFFF?text=PX",
+                description: "Acceso a servidores Plex premium con contenido ilimitado.",
                 quality: "4K Ultra HD",
                 devices: "2 dispositivos simultáneos",
                 duration: "1 mes",
@@ -969,7 +970,7 @@
             if (newRate && !isNaN(newRate) && newRate > 0) {
                 exchangeRate = parseFloat(newRate);
                 document.getElementById('currentRate').textContent = exchangeRate.toFixed(2);
-                document.getElementById('rateDisplay').innerHTML = `<i class="fas fa-exchange-alt"></i> Tasa: <span id="currentRate">${exchangeRate.toFixed(2)}</span> Bs/$`;
+                document.getElementById('rateDisplay').innerHTML = `Tasa: <span id="currentRate">${exchangeRate.toFixed(2)}</span> Bs/$`;
                 renderServices();
             }
         }
@@ -1091,12 +1092,13 @@
         function buyNow(serviceId) {
             const service = services.find(s => s.id === serviceId);
             if (service) {
-                showCheckoutModal([{
+                checkoutItems = [{
                     id: service.id,
                     name: service.name,
                     price: service.price,
                     quantity: 1
-                }]);
+                }];
+                showCheckoutModal(checkoutItems);
             }
         }
         
@@ -1144,12 +1146,12 @@
             const checkoutModal = document.getElementById('checkoutModal');
             const checkoutSummary = document.getElementById('checkoutSummary');
             
-            const itemsToCheckout = items || cart;
+            checkoutItems = items || cart;
             
             let summaryHTML = '<h3>Resumen de Compra</h3>';
             let total = 0;
             
-            itemsToCheckout.forEach(item => {
+            checkoutItems.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 total += itemTotal;
                 
@@ -1179,21 +1181,18 @@
             const name = document.getElementById('customerName').value;
             const paymentMethod = document.getElementById('paymentMethod').value;
             
-            const checkoutSummary = document.getElementById('checkoutSummary');
-            const items = Array.from(checkoutSummary.querySelectorAll('div')).slice(1, -1);
-            
             let message = `¡Hola! Quiero comprar los siguientes servicios:\n\n`;
             message += `*Nombre:* ${name}\n`;
             message += `*Método de Pago:* ${paymentMethod}\n\n`;
             message += `*Pedido:*\n`;
             
-            // Obtener los nombres de los servicios desde el carrito
-            cart.forEach(item => {
+            // Obtener los nombres de los servicios desde el carrito o items de compra directa
+            checkoutItems.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 message += `➤ ${item.name} x${item.quantity} - $${itemTotal.toFixed(2)} (Bs.${(itemTotal * exchangeRate).toFixed(2)})\n`;
             });
             
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const total = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             message += `\n*Total: $${total.toFixed(2)} (Bs.${(total * exchangeRate).toFixed(2)})*\n\n`;
             message += `*¡Gracias por tu compra!*`;
             
@@ -1204,7 +1203,7 @@
             window.open(`https://wa.me/573143991788?text=${encodedMessage}`, '_blank');
             
             // Limpiar carrito si no era una compra directa
-            if (cart.length > 0) {
+            if (checkoutItems === cart) {
                 clearCart();
             }
             
