@@ -273,6 +273,17 @@
             box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
         }
         
+        /* Animación de destello */
+        @keyframes flash {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.9); }
+            100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+        }
+        
+        .flash-effect {
+            animation: flash 0.5s ease-in-out;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -291,8 +302,8 @@
             background: linear-gradient(145deg, #25253a, #1c1c2b);
             padding: 30px;
             border-radius: 15px;
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 90%;
+            max-height: 90%;
             overflow: auto;
             text-align: center;
             position: relative;
@@ -327,6 +338,36 @@
             margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .service-details {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .service-details h4 {
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        
+        .service-details p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .detail-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .detail-buttons button {
+            padding: 12px 20px;
+            font-size: 1rem;
         }
         
         .cart-container {
@@ -530,25 +571,34 @@
         /* Responsive */
         @media (max-width: 768px) {
             .services-container {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
             }
             
+            .service-card {
+                padding: 15px;
+            }
+            
             .service-img {
-                width: 80px;
-                height: 80px;
+                width: 70px;
+                height: 70px;
             }
             
             .service-name {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
             
             .service-price, .service-price-bs {
                 font-size: 0.9rem;
             }
             
+            .service-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
             .add-to-cart, .buy-now {
-                padding: 8px 12px;
+                padding: 8px;
                 font-size: 0.8rem;
             }
             
@@ -559,6 +609,47 @@
             
             .title {
                 font-size: 2.2rem;
+            }
+            
+            .modal-content {
+                padding: 20px;
+                max-width: 95%;
+            }
+            
+            .detail-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .services-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .service-card {
+                padding: 10px;
+            }
+            
+            .service-img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .service-name {
+                font-size: 0.9rem;
+            }
+            
+            .service-price, .service-price-bs {
+                font-size: 0.8rem;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .header {
+                padding: 15px;
             }
         }
     </style>
@@ -597,13 +688,27 @@
         <!-- Servicios se agregarán dinámicamente -->
     </div>
     
-    <!-- Modal para imagen ampliada -->
-    <div class="modal" id="imageModal">
+    <!-- Modal para información detallada del producto -->
+    <div class="modal" id="detailModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal()">&times;</span>
-            <img class="modal-img" id="modalImage" src="" alt="Servicio">
-            <h3 id="modalTitle"></h3>
-            <p id="modalPrice"></p>
+            <img class="modal-img" id="detailImage" src="" alt="Servicio">
+            <h3 id="detailTitle"></h3>
+            <p id="detailPrice"></p>
+            
+            <div class="service-details">
+                <h4>Información del Servicio</h4>
+                <p id="detailDescription"></p>
+                <p><strong>Calidad:</strong> <span id="detailQuality"></span></p>
+                <p><strong>Dispositivos:</strong> <span id="detailDevices"></span></p>
+                <p><strong>Duración:</strong> <span id="detailDuration"></span></p>
+                <p><strong>Garantía:</strong> <span id="detailWarranty"></span></p>
+            </div>
+            
+            <div class="detail-buttons">
+                <button class="add-to-cart" onclick="addDetailToCart()"><i class="fas fa-cart-plus"></i> Añadir al Carrito</button>
+                <button class="buy-now" onclick="buyDetailNow()"><i class="fas fa-bolt"></i> Comprar Ahora</button>
+            </div>
         </div>
     </div>
     
@@ -636,23 +741,164 @@
     <script>
         // Tasa de cambio inicial (se toma del HTML)
         let exchangeRate = parseFloat(document.getElementById('currentRate').textContent);
+        let currentServiceId = null;
         
-        // Servicios disponibles
+        // Servicios disponibles con información detallada
         const services = [
-            { id: 1, name: "Netflix", price: 2.5, image: "1.png" },
-            { id: 2, name: "Prime Video", price: 2.2, image: "p.webp" },
-            { id: 3, name: "Disney+", price: 2.3, image: "2.jpg" },
-            { id: 4, name: "HBO MAX", price: 2.1, image: "3.svg" },
-            { id: 5, name: "Paramount+", price: 2.1, image: "8.jpg" },
-            { id: 6, name: "Crunchyroll", price: 2.1, image: "9.jpg" },
-            { id: 7, name: "Apple TV+", price: 2.7, image: "7.png" },
-            { id: 8, name: "Spotify", price: 3.3, image: "5.png" },
-            { id: 9, name: "FLUJO TV", price: 2.3, image: "flujo.jpeg" },
-            { id: 10, name: "Vix+", price: 2.0, image: "vix.jpg" },
-            { id: 11, name: "Youtube Premium", price: 2.5, image: "6.jpg" },
-            { id: 12, name: "Canva", price: 1.3, image: "canva.jpg" },
-            { id: 13, name: "Tele Latino", price: 3.3, image: "tlel.png" },
-            { id: 14, name: "Plex", price: 3.0, image: "plex.png" }
+            { 
+                id: 1, 
+                name: "Netflix", 
+                price: 2.5, 
+                image: "1.png",
+                description: "Disfruta de series y películas ilimitadas en todos tus dispositivos.",
+                quality: "4K Ultra HD",
+                devices: "4 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 2, 
+                name: "Prime Video", 
+                price: 2.2, 
+                image: "p.webp",
+                description: "Películas y series exclusivas de Amazon Prime Video.",
+                quality: "4K Ultra HD",
+                devices: "3 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 3, 
+                name: "Disney+", 
+                price: 2.3, 
+                image: "2.jpg",
+                description: "Todo el contenido de Disney, Pixar, Marvel, Star Wars y National Geographic.",
+                quality: "4K Ultra HD",
+                devices: "4 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 4, 
+                name: "HBO MAX", 
+                price: 2.1, 
+                image: "3.svg",
+                description: "Series exclusivas de HBO, películas de Warner Bros y mucho más.",
+                quality: "4K Ultra HD",
+                devices: "3 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 5, 
+                name: "Paramount+", 
+                price: 2.1, 
+                image: "8.jpg",
+                description: "Contenido exclusivo de Paramount, MTV, Nickelodeon y más.",
+                quality: "1080p Full HD",
+                devices: "3 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 6, 
+                name: "Crunchyroll", 
+                price: 2.1, 
+                image: "9.jpg",
+                description: "El mejor catálogo de anime directamente desde Japón.",
+                quality: "1080p Full HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 7, 
+                name: "Apple TV+", 
+                price: 2.7, 
+                image: "7.png",
+                description: "Originales Apple TV con producciones de alta calidad.",
+                quality: "4K Ultra HD",
+                devices: "6 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 8, 
+                name: "Spotify", 
+                price: 3.3, 
+                image: "5.png",
+                description: "Música ilimitada sin anuncios y modo offline.",
+                quality: "Audio de alta calidad (320kbps)",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 9, 
+                name: "FLUJO TV", 
+                price: 2.3, 
+                image: "flujo.jpeg",
+                description: "Servicio de TV con canales internacionales y contenido premium.",
+                quality: "1080p Full HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 10, 
+                name: "Vix+", 
+                price: 2.0, 
+                image: "vix.jpg",
+                description: "Contenido en español con telenovelas, series y películas.",
+                quality: "1080p Full HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 11, 
+                name: "Youtube Premium", 
+                price: 2.5, 
+                image: "6.jpg",
+                description: "YouTube sin anuncios y contenido exclusivo.",
+                quality: "4K Ultra HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 12, 
+                name: "Canva", 
+                price: 1.3, 
+                image: "canva.jpg",
+                description: "Acceso a todas las funciones premium de diseño de Canva.",
+                quality: "Plantillas premium y recursos ilimitados",
+                devices: "1 cuenta",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 13, 
+                name: "Tele Latino", 
+                price: 3.3, 
+                image: "tlel.png",
+                description: "Canales de televisión en español de todo el mundo.",
+                quality: "1080p Full HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            },
+            { 
+                id: 14, 
+                name: "Plex", 
+                price: 3.0, 
+                image: "plex.png",
+                description: "Acceso a servidores Plex premium con contenido ilimitado.",
+                quality: "4K Ultra HD",
+                devices: "2 dispositivos simultáneos",
+                duration: "1 mes",
+                warranty: "7 días de garantía"
+            }
         ];
         
         // Carrito de compras
@@ -739,14 +985,15 @@
                 const card = document.createElement('div');
                 card.className = 'service-card';
                 card.style.animationDelay = `${index * 0.1}s`;
+                card.onclick = () => showServiceDetail(service.id);
                 card.innerHTML = `
-                    <img class="service-img" src="${service.image}" alt="${service.name}" onclick="showServiceModal('${service.image}', '${service.name}', ${service.price})">
+                    <img class="service-img" src="${service.image}" alt="${service.name}">
                     <h3 class="service-name">${service.name}</h3>
                     <p class="service-price">$${service.price.toFixed(2)}</p>
                     <p class="service-price-bs">Bs.${priceBs}</p>
                     <div class="service-buttons">
-                        <button class="add-to-cart" onclick="addToCart(${service.id})"><i class="fas fa-cart-plus"></i> Añadir</button>
-                        <button class="buy-now" onclick="buyNow(${service.id})"><i class="fas fa-bolt"></i> Comprar</button>
+                        <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${service.id})"><i class="fas fa-cart-plus"></i> Añadir</button>
+                        <button class="buy-now" onclick="event.stopPropagation(); buyNow(${service.id})"><i class="fas fa-bolt"></i> Comprar</button>
                     </div>
                 `;
                 
@@ -754,22 +1001,62 @@
             });
         }
         
-        // Mostrar modal con imagen ampliada
-        function showServiceModal(image, name, price) {
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('modalImage');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalPrice = document.getElementById('modalPrice');
+        // Mostrar información detallada del servicio
+        function showServiceDetail(serviceId) {
+            const service = services.find(s => s.id === serviceId);
+            if (!service) return;
             
-            modalImg.src = image;
-            modalTitle.textContent = name;
-            modalPrice.textContent = `Precio: $${price.toFixed(2)} (Bs.${(price * exchangeRate).toFixed(2)})`;
+            currentServiceId = serviceId;
+            
+            const modal = document.getElementById('detailModal');
+            const detailImage = document.getElementById('detailImage');
+            const detailTitle = document.getElementById('detailTitle');
+            const detailPrice = document.getElementById('detailPrice');
+            const detailDescription = document.getElementById('detailDescription');
+            const detailQuality = document.getElementById('detailQuality');
+            const detailDevices = document.getElementById('detailDevices');
+            const detailDuration = document.getElementById('detailDuration');
+            const detailWarranty = document.getElementById('detailWarranty');
+            
+            const priceBs = (service.price * exchangeRate).toFixed(2);
+            
+            detailImage.src = service.image;
+            detailTitle.textContent = service.name;
+            detailPrice.textContent = `Precio: $${service.price.toFixed(2)} (Bs.${priceBs})`;
+            detailDescription.textContent = service.description;
+            detailQuality.textContent = service.quality;
+            detailDevices.textContent = service.devices;
+            detailDuration.textContent = service.duration;
+            detailWarranty.textContent = service.warranty;
             
             modal.style.display = 'flex';
+            
+            // Aplicar efecto de destello
+            modal.classList.add('flash-effect');
+            setTimeout(() => {
+                modal.classList.remove('flash-effect');
+            }, 500);
+        }
+        
+        // Añadir al carrito desde el modal de detalle
+        function addDetailToCart() {
+            if (currentServiceId) {
+                addToCart(currentServiceId);
+                closeModal();
+            }
+        }
+        
+        // Comprar ahora desde el modal de detalle
+        function buyDetailNow() {
+            if (currentServiceId) {
+                buyNow(currentServiceId);
+                closeModal();
+            }
         }
         
         // Cerrar modal
         function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
             document.getElementById('imageModal').style.display = 'none';
         }
         
@@ -792,12 +1079,12 @@
                 
                 updateCartDisplay();
                 
-                // Animación de confirmación
+                // Animación de destello en el carrito
                 const cartIcon = document.querySelector('.cart-icon');
-                cartIcon.classList.add('animate__tada');
+                cartIcon.classList.add('flash-effect');
                 setTimeout(() => {
-                    cartIcon.classList.remove('animate__tada');
-                }, 1000);
+                    cartIcon.classList.remove('flash-effect');
+                }, 500);
             }
         }
         
@@ -896,17 +1183,18 @@
             const checkoutSummary = document.getElementById('checkoutSummary');
             const items = Array.from(checkoutSummary.querySelectorAll('div')).slice(1, -1);
             
-            let message = `Hola, quiero comprar los siguientes servicios:\n\n`;
+            let message = `¡Hola! Quiero comprar los siguientes servicios:\n\n`;
             message += `*Nombre:* ${name}\n`;
             message += `*Método de Pago:* ${paymentMethod}\n\n`;
             message += `*Pedido:*\n`;
             
             items.forEach(item => {
-                message += `- ${item.textContent.trim()}\n`;
+                message += `➤ ${item.textContent.trim()}\n`;
             });
             
             const totalText = checkoutSummary.querySelector('h4').textContent;
-            message += `\n*${totalText}*`;
+            message += `\n*${totalText}*\n\n`;
+            message += `*¡Gracias por tu compra!*`;
             
             // Codificar el mensaje para URL
             const encodedMessage = encodeURIComponent(message);
@@ -915,7 +1203,7 @@
             window.open(`https://wa.me/573143991788?text=${encodedMessage}`, '_blank');
             
             // Limpiar carrito si no era una compra directa
-            if (!document.getElementById('checkoutSummary').textContent.includes("Resumen de Compra")) {
+            if (cart.length > 0) {
                 clearCart();
             }
             
@@ -924,11 +1212,11 @@
         
         // Cerrar modales al hacer clic fuera
         window.onclick = function(event) {
-            const imageModal = document.getElementById('imageModal');
+            const detailModal = document.getElementById('detailModal');
             const checkoutModal = document.getElementById('checkoutModal');
             
-            if (event.target === imageModal) {
-                imageModal.style.display = 'none';
+            if (event.target === detailModal) {
+                detailModal.style.display = 'none';
             }
             
             if (event.target === checkoutModal) {
